@@ -3,6 +3,7 @@
 import kmeans_radec
 import numpy as np
 import os
+import sys
 import esutil
 
 import matplotlib.pyplot as plt
@@ -144,18 +145,22 @@ def JackknifeOnSphere(jarrs, jras, jdecs, jfunc, jargs=[], jkwargs={}, jtype='ge
     full_j = EnforceArray2D(full_j)
     full_other = EnforceArray1D(full_other)
 
-    it_j = [ [] ] * len(full_j)
+    it_j = []
     it_other = [ [] ] * len(full_other)
     for j in range(njack):
         ja = []
         for i in range(len(jarrs)):
             cut = (ind[i]==j)
             ja.append(jarrs[i][-cut])
+            
+            if j==0:
+                it_j.append( [] )
+
         i_j, i_other = jfunc(ja, *jargs, **jkwargs)
         i_j = EnforceArray2D(i_j)
         i_other = EnforceArray1D(i_other)
         for i in range(len(i_j)):
-            it_j[i].append(i_j[i])
+            it_j[i].append( np.copy(i_j[i]) )
         for i in range(len(i_other)):
             it_other[i].append(i_other[i])
 
@@ -166,7 +171,7 @@ def JackknifeOnSphere(jarrs, jras, jdecs, jfunc, jargs=[], jkwargs={}, jtype='ge
     for k in range(len(full_j)):
         csize = len(full_j[k])
         cov = np.zeros( (csize,csize) )
-
+        
         for i in range(csize):
             for j in range(i, csize):
                 cov[i,j] =  np.sum( (it_j[k][:,i] - full_j[k][i]) * (it_j[k][:,j] - full_j[k][j]) ) * float(njack-1)/njack
@@ -185,20 +190,24 @@ def Test(band='i'):
     datadir = os.path.join(os.environ['GLOBALDIR'],'with-version_matched')
     truth, matched, des, nosim = GetData2(band=band, dir=datadir, killnosim=False)
 
+    matched = matched[ matched['modest_i']==0 ]
+    des = des[ des['modest_i']==0 ]
+
     #jfile = JackknifeOnSphere( [nosim], ['ra_i'], ['dec_i'], Dummy, jtype='generate', njack=22, jfile='nosim-JK-22.txt', generateonly=True)
     #print jfile
     #hists, covs, oth, oths = JackknifeOnSphere( [nosim], ['ra_i'], ['dec_i'], Dummy, jtype='read', jfile='nosim-JK-22.txt')
     #print hists, covs, oth, oths
 
     #jfile = JackknifeOnSphere( [matched,des], ['alphawin_j2000_i','alphawin_j2000_i'], ['deltawin_j2000_i', 'deltawin_j2000_i'], Histogram, jargs=['mag_auto_i'], jkwargs={'binsize':0.1}, jtype='generate', jfile='fullJK-24.txt', generateonly=True)
-    hists, covs, extra, jextra = JackknifeOnSphere( [matched,des], ['alphawin_j2000_i','alphawin_j2000_i'], ['deltawin_j2000_i', 'deltawin_j2000_i'], Histogram, jargs=['mag_auto_i'], jkwargs={'binsize':0.1}, jtype='read', jfile='fullJK-24.txt')
+    hists, covs, extra, jextra = JackknifeOnSphere( [matched,des], ['alphawin_j2000_i','alphawin_j2000_i'], ['deltawin_j2000_i', 'deltawin_j2000_i'], Histogram, jargs=['mag_auto_i'], jkwargs={'binsize':0.2}, jtype='read', jfile='fullJK-24.txt')
     sim_hist, des_hist = hists
     sim_cov, des_cov = covs
     centers = extra[0]
 
     serr = np.sqrt(np.diag(sim_cov))
     derr = np.sqrt(np.diag(des_cov))
-    print len(centers), len(sim_hist), len(des_hist), len(serr), len(derr)
+    #print sim_hist, serr
+    #print np.array(serr) / np.array(sim_hist)
    
     fig, ax = plt.subplots(1,1, figsize=(10,6))
     ax.errorbar(centers, sim_hist, yerr=serr, color='blue', label='Balrog')
