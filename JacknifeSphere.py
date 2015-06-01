@@ -190,7 +190,7 @@ def Test(band='i'):
     #hists, covs, oth, oths = JackknifeOnSphere( [nosim], ['ra_i'], ['dec_i'], Dummy, jtype='read', jfile='nosim-JK-22.txt')
     #print hists, covs, oth, oths
 
-    jfile = JackknifeOnSphere( [matched,des], ['alphawin_j2000_i','alphawin_j2000_i'], ['deltawin_j2000_i', 'deltawin_j2000_i'], Histogram, jargs=['mag_auto_i'], jkwargs={'binsize':0.1}, jtype='generate', jfile='fullJK-24.txt', generateonly=True)
+    #jfile = JackknifeOnSphere( [matched,des], ['alphawin_j2000_i','alphawin_j2000_i'], ['deltawin_j2000_i', 'deltawin_j2000_i'], Histogram, jargs=['mag_auto_i'], jkwargs={'binsize':0.1}, jtype='generate', jfile='fullJK-24.txt', generateonly=True)
     hists, covs, extra, jextra = JackknifeOnSphere( [matched,des], ['alphawin_j2000_i','alphawin_j2000_i'], ['deltawin_j2000_i', 'deltawin_j2000_i'], Histogram, jargs=['mag_auto_i'], jkwargs={'binsize':0.1}, jtype='read', jfile='fullJK-24.txt')
     sim_hist, des_hist = hists
     sim_cov, des_cov = covs
